@@ -1,6 +1,7 @@
 from keras import backend as K
 from .tools import stretch_array
 import tensorflow as tf
+import numpy as np
 
 def build_network(X_nodes, X_edges, X_nodes_in_out, 
                   X_messages_in, X_messages_out, message_passers, 
@@ -20,20 +21,40 @@ def build_network(X_nodes, X_edges, X_nodes_in_out,
         messages_aggregated_in = K.max(K.gather(reference=messages, indices=X_messages_in), axis=1)
         messages_aggregated_out = K.max(K.gather(reference=messages, indices=X_messages_out), axis=1)
         
-        ## For GRU-based state_updater
-       # _, X_nodes = state_updater(
-        #    inputs=K.concatenate([messages_aggregated_in, messages_aggregated_out], axis=1),
-         #   state=X_nodes
-        #)
+        messages_aggregated_in2 = K.mean(K.gather(reference=messages, indices=X_messages_in), axis=1)
+        messages_aggregated_out2 = K.mean(K.gather(reference=messages, indices=X_messages_out), axis=1)
         
-        ## For LSTM-based state_updater
-        _, (_, X_nodes) = state_updater(
-            inputs=K.concatenate([messages_aggregated_in, messages_aggregated_out], axis=1),
-            state=(tf.zeros_like(X_nodes), X_nodes)
-        )
+        messages_aggregated_in3 = K.var(K.gather(reference=messages, indices=X_messages_in), axis=1)
+        messages_aggregated_out3 = K.var(K.gather(reference=messages, indices=X_messages_out), axis=1)
+        
+        messages_aggregated_in4 = K.std(K.gather(reference=messages, indices=X_messages_in), axis=1)
+        messages_aggregated_out4 = K.std(K.gather(reference=messages, indices=X_messages_out), axis=1)
+       
+        
+        ## For GRU-based state_updater
+      #  _, X_nodes = state_updater(
+      #     inputs=K.concatenate([messages_aggregated_in, messages_aggregated_out
+                              #      ,messages_aggregated_in2, messages_aggregated_out2, 
+                               #      messages_aggregated_in3, messages_aggregated_out3,
+                                #    ], axis=1),
+           # state=X_nodes
+     #   )
+        
+       # For LSTM-based state_updater
+      #  _, (_, X_nodes) = state_updater(
+       #     inputs=K.concatenate([messages_aggregated_in, messages_aggregated_out
+        #                          ,messages_aggregated_in2, messages_aggregated_out2, 
+         #                         messages_aggregated_in3, messages_aggregated_out3, 
+          #                        messages_aggregated_in4, messages_aggregated_out4
+             #                    ], axis=1),
+         #   state=(tf.zeros_like(X_nodes), X_nodes)
+     #   )
         
         ## For dense state_updater
-      #  X_nodes = state_updater(K.concatenate([messages_aggregated_in, messages_aggregated_out, X_nodes], axis=1))
+        X_nodes = state_updater(K.concatenate([messages_aggregated_in, messages_aggregated_in2, messages_aggregated_out, messages_aggregated_out2, messages_aggregated_in3, messages_aggregated_out3, 
+                                               messages_aggregated_in4, 
+                                              messages_aggregated_out4, 
+                                             X_nodes], axis=1))
         
     return readout(X_nodes)
 

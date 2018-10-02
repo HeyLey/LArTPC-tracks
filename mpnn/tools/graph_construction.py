@@ -20,10 +20,16 @@ def generate_edges(sample_condensed, mode='kneighbors_graph', n_neighbors=3, rad
     n_neighbors = min(n_neighbors, len(X) - 1)
     if mode == 'kneighbors_graph':
         adjacency_matrix = np.array((kneighbors_graph(X=X[:, :3], 
-                                                      n_neighbors=n_neighbors, mode='distance')).todense())
+                                                      n_neighbors=n_neighbors, 
+                                                      mode='distance',
+                                                      metric = 'euclidean' #'manhattan'
+                                                     )).todense())
     elif mode == 'radius_neighbors_graph':
         adjacency_matrix = np.array((radius_neighbors_graph(X=X[:, :3], 
-                                                            radius=radius, mode='distance')).todense())
+                                                            radius=radius, 
+                                                            mode='distance',
+                                                            metric = 'euclidean'
+                                                           )).todense())
     else:
         raise 'Unknown mode {}'.format(mode)
     rows, cols = np.where(adjacency_matrix > 0)
